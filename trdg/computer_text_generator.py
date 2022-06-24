@@ -17,7 +17,7 @@ def generate(
     stroke_fill="#282828",
 ):
     if orientation == 0:
-        return _generate_horizontal_text(
+        return _generate_horizontal_text_km(
             text,
             font,
             text_color,
@@ -112,6 +112,95 @@ def _generate_horizontal_text(
     else:
         return txt_img, txt_mask
 
+def _generate_horizontal_text_km(
+    text, font, text_color, font_size, space_width, character_spacing, fit, word_split, 
+    stroke_width=0, stroke_fill="#282828"
+):
+    image_font = ImageFont.truetype(font=font, size=font_size)
+    km_font = ImageFont.truetype(font=font, size=font_size // 2)
+
+    space_width = int(image_font.getsize(" ")[0] * space_width)
+
+    if word_split:
+        splitted_text = []
+        for w in text.split(" "):
+            splitted_text.append(w)
+            splitted_text.append(" ")
+        splitted_text.pop()
+    else:
+        splitted_text = text
+
+    piece_widths = []
+    for p in splitted_text:
+        if p == " ":
+            piece_widths.append(space_width)
+        if p.lower() in ("k", "m"):
+            piece_widths.append(km_font.getsize(p)[0])
+        else:
+            piece_widths.append(image_font.getsize(p)[0])
+            
+    text_width = sum(piece_widths)
+    if not word_split:
+        text_width += character_spacing * (len(text) - 1)
+
+    text_height = -1
+    for p in splitted_text:
+        if p.isnumeric():
+            text_height = max(text_height, image_font.getsize(p)[1])
+
+    txt_img = Image.new("RGBA", (text_width, text_height), (0, 0, 0, 0))
+    txt_mask = Image.new("RGB", (text_width, text_height), (0, 0, 0))
+
+    txt_img_draw = ImageDraw.Draw(txt_img)
+    txt_mask_draw = ImageDraw.Draw(txt_mask, mode="RGB")
+    txt_mask_draw.fontmode = "1"
+
+    colors = [ImageColor.getrgb(c) for c in text_color.split(",")]
+    c1, c2 = colors[0], colors[-1]
+
+    fill = (
+        rnd.randint(min(c1[0], c2[0]), max(c1[0], c2[0])),
+        rnd.randint(min(c1[1], c2[1]), max(c1[1], c2[1])),
+        rnd.randint(min(c1[2], c2[2]), max(c1[2], c2[2])),
+    )
+
+    stroke_colors = [ImageColor.getrgb(c) for c in stroke_fill.split(",")]
+    stroke_c1, stroke_c2 = stroke_colors[0], stroke_colors[-1]
+
+    stroke_fill = (
+        rnd.randint(min(stroke_c1[0], stroke_c2[0]), max(stroke_c1[0], stroke_c2[0])),
+        rnd.randint(min(stroke_c1[1], stroke_c2[1]), max(stroke_c1[1], stroke_c2[1])),
+        rnd.randint(min(stroke_c1[2], stroke_c2[2]), max(stroke_c1[2], stroke_c2[2])),
+    )
+
+    for i, p in enumerate(splitted_text):
+        draw_font = image_font 
+        y = 0
+        if p.lower() in ("k", "m"):
+            draw_font = km_font
+            y = text_height // 2
+
+        txt_img_draw.text(
+            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), y),
+            p,
+            fill=fill,
+            font=draw_font,
+            stroke_width=stroke_width,
+            stroke_fill=stroke_fill,
+        )
+        txt_mask_draw.text(
+            (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), y),
+            p,
+            fill=((i + 1) // (255 * 255), (i + 1) // 255, (i + 1) % 255),
+            font=draw_font,
+            stroke_width=stroke_width,
+            stroke_fill=stroke_fill,
+        )
+
+    if fit:
+        return txt_img.crop(txt_img.getbbox()), txt_mask.crop(txt_img.getbbox())
+    else:
+        return txt_img, txt_mask
 
 def _generate_vertical_text(
     text, font, text_color, font_size, space_width, character_spacing, fit,

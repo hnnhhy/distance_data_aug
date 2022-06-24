@@ -60,7 +60,6 @@ def parse_arguments():
         type=int,
         nargs="?",
         help="The number of images to be created.",
-        required=True,
     )
     parser.add_argument(
         "-rs",
@@ -349,6 +348,23 @@ def main():
 
     # Argument parsing
     args = parse_arguments()
+    args.output_dir  = "out/"
+    args.language = "en"
+    args.count = 10000000
+    args.length = 1
+    args.format = 32
+    args.skew_angle = 10
+    args.random_skew = True 
+    args.blur = 1.5
+    args.random_blur = True 
+    args.background = 1
+    args.name_format = 0
+    args.distorsion = 3
+    args.margins = (0,0,0,0)
+    args.fit = True 
+    args.font_dir = "./my_fonts"
+    args.dict = "./distance.txt"
+    args.thread_count = 4
 
     # Create the directory if it does not exist.
     try:

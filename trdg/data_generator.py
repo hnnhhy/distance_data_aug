@@ -1,7 +1,8 @@
 import os
 import random as rnd
 
-from PIL import Image, ImageFilter, ImageStat
+from PIL import Image, ImageFilter, ImageStat, ImageOps
+
 
 from trdg import computer_text_generator, background_generator, distorsion_generator
 from trdg.utils import mask_to_bboxes
@@ -238,10 +239,36 @@ class FakeTextDataGenerator(object):
         #######################
 
         gaussian_filter = ImageFilter.GaussianBlur(
-            radius=blur if not random_blur else rnd.randint(0, blur)
+            radius=rnd.uniform(0, 2)
         )
         final_image = background_img.filter(gaussian_filter)
         final_mask = background_mask.filter(gaussian_filter)
+
+        #################
+        # color, inversion
+        #################
+        # inversion
+        if rnd.randint(0,2) < 2:
+            final_image = ImageOps.invert(final_image)
+            final_mask = ImageOps.invert(final_mask)
+        
+        # color 
+        # Load image:
+        final_image_pixels = final_image.load()
+        #final_mask_pixels = final_mask.load()
+
+        # Generate image
+        r_ratio = rnd.uniform(0.5, 1.5)
+        g_ratio = rnd.uniform(0.5, 1.5)
+        b_ratio = rnd.uniform(0.5, 1.5)
+        for x in range(final_image.width):
+            for y in range(final_image.height):
+                r, g, b = final_image_pixels[x, y]
+                r = int(r * r_ratio)
+                g = int(g * g_ratio)
+                b = int(b * b_ratio)
+                final_image.putpixel((x, y), (r,g,b))
+            
         
         #####################################
         # Generate name for resulting image #
