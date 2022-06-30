@@ -350,7 +350,7 @@ def main():
     args = parse_arguments()
     args.output_dir  = "out/"
     args.language = "en"
-    args.count = 10000000
+    args.count = 1000000
     args.length = 1
     args.format = 32
     args.skew_angle = 10
