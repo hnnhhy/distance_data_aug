@@ -348,9 +348,9 @@ def main():
 
     # Argument parsing
     args = parse_arguments()
-    args.output_dir  = "out/"
+    args.output_dir  = "out_v2/"
     args.language = "en"
-    args.count = 1000000
+    args.count = 100000
     args.length = 1
     args.format = 32
     args.skew_angle = 10
@@ -363,7 +363,7 @@ def main():
     args.margins = (0,0,0,0)
     args.fit = True 
     args.font_dir = "./my_fonts"
-    args.dict = "./distance.txt"
+    args.dict = "./distance_v2.txt"
     args.thread_count = 4
 
     # Create the directory if it does not exist.

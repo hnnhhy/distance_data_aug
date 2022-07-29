@@ -239,7 +239,7 @@ class FakeTextDataGenerator(object):
         #######################
 
         gaussian_filter = ImageFilter.GaussianBlur(
-            radius=rnd.uniform(0, 2)
+            radius=rnd.uniform(0, 1.3)
         )
         final_image = background_img.filter(gaussian_filter)
         final_mask = background_mask.filter(gaussian_filter)
@@ -286,13 +286,14 @@ class FakeTextDataGenerator(object):
             print("{} is not a valid name format. Using default.".format(name_format))
             name = "{}_{}".format(text, str(index))
 
-        image_name = "{}.{}".format(name, extension)
+        image_name = "its-v-2-{}.{}".format(name, extension)
         mask_name = "{}_mask.png".format(name)
         box_name = "{}_boxes.txt".format(name)
         tess_box_name = "{}.box".format(name)
 
 
         # Save the image
+
         if out_dir is not None:
             final_image.save(os.path.join(out_dir, image_name))
             if output_mask == 1:

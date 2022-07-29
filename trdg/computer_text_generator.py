@@ -1,6 +1,7 @@
 import random as rnd
 
 from PIL import Image, ImageColor, ImageFont, ImageDraw, ImageFilter
+import random 
 
 
 def generate(
@@ -118,8 +119,10 @@ def _generate_horizontal_text_km(
 ):
     image_font = ImageFont.truetype(font=font, size=font_size)
     km_font = ImageFont.truetype(font=font, size=font_size // 2)
+    ko_fonts = ["/home/distance_data_aug/ko_fonts/malgun.ttf", "/home/distance_data_aug/ko_fonts/Hoengseong Hanu.ttf"]
+    ko_font = ImageFont.truetype(font=random.choice(ko_fonts), size=font_size)
 
-    space_width = int(image_font.getsize(" ")[0] * space_width)
+    space_width = int(km_font.getsize(" ")[0] * space_width)
 
     if word_split:
         splitted_text = []
@@ -134,8 +137,10 @@ def _generate_horizontal_text_km(
     for p in splitted_text:
         if p == " ":
             piece_widths.append(space_width)
-        if p.lower() in ("k", "m"):
+        elif p in ("k", "K", "m", "O", "D"):
             piece_widths.append(km_font.getsize(p)[0])
+        elif p in ("전", "체"):
+            piece_widths.append(ko_font.getsize(p)[0])
         else:
             piece_widths.append(image_font.getsize(p)[0])
             
@@ -145,8 +150,11 @@ def _generate_horizontal_text_km(
 
     text_height = -1
     for p in splitted_text:
-        if p.isnumeric():
-            text_height = max(text_height, image_font.getsize(p)[1])
+        if p not in ("k", "K", "m", "O", "D"):
+            if p not in "전체":
+                text_height = max(text_height, image_font.getsize(p)[1])
+            else:
+                text_height = max(text_height, ko_font.getsize(p)[1])
 
     txt_img = Image.new("RGBA", (text_width, text_height), (0, 0, 0, 0))
     txt_mask = Image.new("RGB", (text_width, text_height), (0, 0, 0))
@@ -172,13 +180,20 @@ def _generate_horizontal_text_km(
         rnd.randint(min(stroke_c1[1], stroke_c2[1]), max(stroke_c1[1], stroke_c2[1])),
         rnd.randint(min(stroke_c1[2], stroke_c2[2]), max(stroke_c1[2], stroke_c2[2])),
     )
-
+    
+    sp_y = -1
     for i, p in enumerate(splitted_text):
         draw_font = image_font 
-        y = 0
-        if p.lower() in ("k", "m"):
+        if p in ("k", "K", "m", "O", "D"):
             draw_font = km_font
-            y = text_height // 2
+            if sp_y == -1:
+                sp_y = text_height // 2 if random.randint(1,2) == 1 else 0
+            y = sp_y 
+        elif p in "전체":
+            y = 0 
+            draw_font = ko_font
+        else:
+            y = 0
 
         txt_img_draw.text(
             (sum(piece_widths[0:i]) + i * character_spacing * int(not word_split), y),
